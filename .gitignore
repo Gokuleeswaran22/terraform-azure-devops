@@ -8,7 +8,7 @@
 *.tfvars
 !environments/dev.tfvars
 !environments/prod.tfvars
-
+!environments/qa.tfvars
 # Terraform plans
 *.tfplan
 

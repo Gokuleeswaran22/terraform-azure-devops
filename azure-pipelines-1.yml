@@ -4,6 +4,15 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+parameters:
+- name: environment
+  displayName: 'Select Environment'
+  type: string
+  default: dev
+  values:
+  - dev
+  - prod
+
 variables:
   serviceConnection: 'Azure-ServiceConnection'
 
@@ -14,8 +23,9 @@ steps:
   inputs:
     terraformVersion: '1.15.8'
 
+
 - task: AzureCLI@2
-  displayName: 'Terraform Init, Validate, Plan and Apply'
+  displayName: 'Terraform Plan and Apply - ${{ parameters.environment }}'
   inputs:
     azureSubscription: '$(serviceConnection)'
     scriptType: 'bash'
@@ -26,9 +36,54 @@ steps:
       export ARM_TENANT_ID="$tenantId"
       export ARM_SUBSCRIPTION_ID="96124cd3-9a56-47cc-a8de-97cf3a98f50b"
       export ARM_OIDC_TOKEN="$idToken"
-      export ARM_USE_OIDC=true
+      export ARM_USE_OIDC="true"
 
-      terraform init -reconfigure
+      echo "Deploying environment: ${{ parameters.environment }}"
+
+      terraform init \
+        -reconfigure \
+        -backend-config="key=${{ parameters.environment }}.terraform.tfstate"
+
       terraform validate
-      terraform plan -out=tfplan
-      terraform apply -auto-approve tfplan
+
+      terraform plan \
+        -var-file="environments/${{ parameters.environment }}.tfvars" \
+        -out=tfplan
+
+      terraform apply \
+        -auto-approve \
+        tfplan
+
+
+- task: AzureCLI@2
+  displayName: 'Terraform State - ${{ parameters.environment }}'
+  inputs:
+    azureSubscription: '$(serviceConnection)'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    addSpnToEnvironment: true
+    inlineScript: |
+      export ARM_CLIENT_ID="$servicePrincipalId"
+      export ARM_TENANT_ID="$tenantId"
+      export ARM_SUBSCRIPTION_ID="96124cd3-9a56-47cc-a8de-97cf3a98f50b"
+      export ARM_OIDC_TOKEN="$idToken"
+      export ARM_USE_OIDC="true"
+
+      terraform init \
+        -reconfigure \
+        -backend-config="key=${{ parameters.environment }}.terraform.tfstate"
+
+      terraform state list
+
+
+- task: AzureCLI@2
+  displayName: 'Verify Azure Resources - ${{ parameters.environment }}'
+  inputs:
+    azureSubscription: '$(serviceConnection)'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az resource list \
+        --resource-group "rg-${{ parameters.environment }}-demo" \
+        --query "[].{Name:name, Type:type, Location:location}" \
+        --output table

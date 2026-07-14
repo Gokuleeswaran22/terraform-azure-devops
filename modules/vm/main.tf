@@ -56,16 +56,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
 }
 
 resource "azurerm_managed_disk" "data_disk" {
-
-  name                 = "${var.vm_name}-disk01"
-
+  name                 = "${var.vm_name}-data-disk"
   location             = var.location
-
   resource_group_name  = var.resource_group_name
-
-  storage_account_type = "StandardSSD_LRS"
-
-  create_option = "Empty"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
 
   disk_size_gb = 128
 }

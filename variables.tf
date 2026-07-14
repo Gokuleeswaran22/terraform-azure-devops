@@ -40,3 +40,8 @@ variable "vm_size" {
 variable "ssh_public_key" {
   type = string
 }
+
+variable "data_disk_size_gb" {
+  description = "Size of the VM data disk in GB"
+  type        = number
+}

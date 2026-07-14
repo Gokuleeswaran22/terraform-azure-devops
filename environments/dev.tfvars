@@ -5,6 +5,7 @@ vnet_name           = "vnet-dev"
 subnet_name         = "subnet-dev"
 nsg_name            = "nsg-dev"
 vm_name             = "vm-dev-linux"
+data_disk_size_gb = 64
 
 admin_username = "azureuser"
 vm_size        = "Standard_D2as_v7"

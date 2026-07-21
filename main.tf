@@ -28,12 +28,12 @@ module "vm" {
   source = "./modules/vm"
 
   location            = var.location
-  resource_group_name = var.resource_group_name
+  resource_group_name = module.resource_group.resource_group_name
   vm_name             = var.vm_name
   admin_username      = var.admin_username
   vm_size             = var.vm_size
   ssh_public_key      = var.ssh_public_key
   subnet_id           = module.network.subnet_id
 
-  data_disk_size_gb = var.data_disk_size_gb
+  data_disk_size_gb   = var.data_disk_size_gb
 }
